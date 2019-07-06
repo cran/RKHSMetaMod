@@ -63,7 +63,7 @@ SEXP calc_q(NumericVector Y, List Kv,List k_v, int qmax, double mumin,double muM
     Rcpp::stop("Error : Smaller value for mumin should be choseen.");
   }
   return 0;
-}
+}//End calc_q
 
 // [[Rcpp::export]]
 SEXP RKHSMetMod_qmax(NumericVector Y, NumericMatrix X, String kernel,
@@ -103,4 +103,4 @@ SEXP RKHSMetMod_qmax(NumericVector Y, NumericMatrix X, String kernel,
   NumericVector mus; mus = qres["mus"];
   NumericVector qs; qs = qres["qs"];
   return List::create(Named("mus",(mus)/sqrt(n)),Named("qs",qs),Named("MetaModel",penMeMod));
-}
+}//End RKHSMetMod_qmax

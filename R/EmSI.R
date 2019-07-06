@@ -12,4 +12,4 @@ SI_emp<-function(res,ErrPred=NULL){
     }
   }
   return(SImp)
-}
+}#End SI_emp

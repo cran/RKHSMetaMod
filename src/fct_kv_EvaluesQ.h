@@ -2,7 +2,7 @@
 #define GramMatrix_H
 #include <Rcpp.h>
 using namespace Rcpp;
-
+using namespace std;
 NumericVector k0linear(NumericVector u, double v);
 NumericVector k0quad(NumericVector u, double v);
 NumericVector int_1v(NumericVector x);

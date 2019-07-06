@@ -11,7 +11,7 @@ NumericVector k0linearT(NumericVector u, double v) {
   k = 1+v*u;
   k0 = k - 4*(1+v/2)*(1+u/2)/5;
   return(k0);
-}
+}//End k0linearT
 NumericVector k0quadT(NumericVector u, double v) {
   int l; l = u.length();
   Rcpp::NumericVector k(l);
@@ -33,7 +33,7 @@ NumericVector k0quadT(NumericVector u, double v) {
   c=3*ab/5;
   k0 = k - c;
   return(k0);
-}
+}//End k0quadT
 NumericVector zmT(NumericVector x){
   int l; l = x.length();
   Rcpp::NumericVector z(l);
@@ -49,12 +49,11 @@ NumericVector k0maternT(NumericVector u, double v) {
   int l; l = u.length();
   Rcpp::NumericVector k(l);
   Rcpp::NumericVector k0(l);
-  double z2;
   k = (1+2*abs(u-v))*exp(-2*abs(u-v));
-  z2 =  (1+5*exp(-2))/2;
+  const double z2 = 0.8383385;
   k0 = k - zmT(u)*zmdT(v)/z2;
   return(k0);
-}
+}//End k0maternT
 NumericVector k0brownianT(NumericVector u, double v) {
   int l; l = u.length();
   NumericVector k(l);
@@ -64,27 +63,25 @@ NumericVector k0brownianT(NumericVector u, double v) {
   vb=1+v*(1-v/2);
   k0 = k-3*(1+u*(1-u/2))*vb/4;
   return(k0);
-}
+}//End k0brownianT
 NumericVector zgT(NumericVector x){
-  static const double pi = 3.14159265;
   int n;
   n = x.size();
   NumericVector p1v(n);
   NumericVector p2v(n);
   NumericVector zgv(n);
-  p1v = pnorm((1-x)*sqrt(2));
-  p2v =  pnorm(-x*sqrt(2));
-  zgv = sqrt(pi)*(p1v-p2v);
+  p1v = pnorm((1-x)*1.414214);
+  p2v =  pnorm(-x*1.414214);
+  zgv = 1.772454*(p1v-p2v);
   return (zgv);
 }
 double zgdT(double x){
-  static const double pi = 3.14159265;
   double p1d;
   double p2d;
   double zgd;
-  p1d = R::pnorm((1-x)*sqrt(2),0,1,TRUE,FALSE);
-  p2d =  R::pnorm(-x*sqrt(2),0,1,TRUE,FALSE);
-  zgd = sqrt(pi)*(p1d-p2d);
+  p1d = R::pnorm((1-x)*1.414214,0,1,TRUE,FALSE);
+  p2d =  R::pnorm(-x*1.414214,0,1,TRUE,FALSE);
+  zgd = 1.772454*(p1d-p2d);
   return (zgd);
 }
 NumericVector k0gaussianT(NumericVector u, double v) {
@@ -98,7 +95,7 @@ NumericVector k0gaussianT(NumericVector u, double v) {
   const double z2g = 0.8615277;
   k0 = k - zgT(u)*zgdT(v)/z2g;
   return(k0);
-}
+}//End k0gaussianT
 NumericVector k0T(NumericVector u, double v, String kernel) {
   int l; l = u.length();// I add length
   Rcpp::NumericVector k(l);
@@ -108,7 +105,7 @@ NumericVector k0T(NumericVector u, double v, String kernel) {
   if (kernel=="linear") k = k0linearT(u,v);
   if (kernel=="quad") k = k0quadT(u,v);
   return(k);
-}
+}//End k0T
 SEXP KvTest(NumericMatrix X,NumericMatrix XT,String kernel,int Dmax){
   List index_K_T(Dmax);
   int d = X.cols();
@@ -126,7 +123,7 @@ SEXP KvTest(NumericMatrix X,NumericMatrix XT,String kernel,int Dmax){
     NumericVector k(nnT);
     for (int jj=0; jj<n; jj++) {
       NumericVector v0k(nT);
-      v0k = k0T(XT(_,hh),X(jj,hh),kernel=kernel);
+      v0k = k0T(XT(_,hh),X(jj,hh),kernel);
       std::copy(v0k.begin(), v0k.end() ,k.begin()+(nT*hk));
       hk+=1;
     }
@@ -228,7 +225,7 @@ SEXP KvTest(NumericMatrix X,NumericMatrix XT,String kernel,int Dmax){
     }
   }
   return matZ;
-}
+}//End KvTest
 // [[Rcpp::export]]
 NumericMatrix PredErr(NumericMatrix X, NumericMatrix XT, NumericVector YT,NumericVector mu,
                               NumericVector gamma, List res, String kernel, int Dmax){
@@ -274,4 +271,4 @@ NumericMatrix PredErr(NumericMatrix X, NumericMatrix XT, NumericVector YT,Numeri
     colnames(ErrPred)=a;
     rownames(ErrPred)=aa;
   return ErrPred;
-}
+}//End PredErr

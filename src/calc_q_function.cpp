@@ -82,4 +82,4 @@ SEXP grplasso_q(NumericVector Y, List Kv, int q, double rat, int Num){
         Rcpp::stop("Error : Smaller value for mumin should be choseen.");
       }
   return 0;
-}
+}//End grplasso_q

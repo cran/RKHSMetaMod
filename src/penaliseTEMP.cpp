@@ -20,9 +20,9 @@ Rcpp::NumericVector gFc(Rcpp::List liste, int l) {
   l = l - 1;
   Rcpp::NumericVector v(liste[l]);
   return(v);
-}
+}//End gFc
 
-double my_fct (double ro, void *params){
+double my_fct(double ro, void *params){
   struct my_fct_params *p = (struct my_fct_params *) params;
   int n = p->n;
   VectorXd Z1 = p->Z1;
@@ -45,7 +45,7 @@ double my_fct (double ro, void *params){
   
   double NxChap; NxChap = xChap.norm()-1;
   return(NxChap);
-}
+}//End my_fct
 double uniroot(int n,VectorXd Z1, NumericVector d,NumericVector sqd , MatrixXd Q,
                MatrixXd kv , double muv, double t0, double t1){
   int status;
@@ -75,7 +75,7 @@ double uniroot(int n,VectorXd Z1, NumericVector d,NumericVector sqd , MatrixXd Q
   while (status == GSL_CONTINUE && iter < max_iter);
   gsl_root_fsolver_free (s);
   return r;
-}
+}//End uniroot
 SEXP optV(int n,VectorXd Z1, NumericVector d,NumericVector sqd ,MatrixXd Q
             ,MatrixXd kv , double muv, double gamav){
   List l;
@@ -151,9 +151,9 @@ SEXP optV(int n,VectorXd Z1, NumericVector d,NumericVector sqd ,MatrixXd Q
     }
   }
   return l;
-}
+}//End optV
 
-int rvfct_f (const gsl_vector * x, void *params, gsl_vector * f){
+int rvfct_f(const gsl_vector * x, void *params, gsl_vector * f){
   NumericVector d = ((struct fparams *) params)->d;
   MatrixXd Q = ((struct fparams *) params)->Q;
   MatrixXd kv = ((struct fparams *) params)->kv;
@@ -184,8 +184,8 @@ int rvfct_f (const gsl_vector * x, void *params, gsl_vector * f){
   gsl_vector_set (f, 1, y1);
   
   return GSL_SUCCESS;
-}
-int rvfct_df (const gsl_vector * x, void *params, gsl_matrix * J){
+}//End rvfct_f
+int rvfct_df(const gsl_vector * x, void *params, gsl_matrix * J){
   NumericVector d = ((struct fparams *) params)->d;
   MatrixXd Q = ((struct fparams *) params)->Q;
   MatrixXd kv = ((struct fparams *) params)->kv;
@@ -240,13 +240,13 @@ int rvfct_df (const gsl_vector * x, void *params, gsl_matrix * J){
   gsl_matrix_set (J, 1, 1, df11);
   
   return GSL_SUCCESS;
-}
-int rvfct_fdf (const gsl_vector * x, void *params, gsl_vector * f, gsl_matrix * J){
+}//End rvfct_df
+int rvfct_fdf(const gsl_vector * x, void *params, gsl_vector * f, gsl_matrix * J){
   rvfct_f (x, params, f);
   rvfct_df (x, params, J);
   
   return GSL_SUCCESS;
-}
+}//End rvfct_fdf
 SEXP nleqslvgnewton(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd kv,
                     VectorXd R, double gamav, double muv){
   const gsl_multiroot_fdfsolver_type *T;
@@ -291,7 +291,7 @@ SEXP nleqslvgnewton(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd 
   
   NumericVector v = NumericVector::create(r1,r2);
   return List::create(Named("status",status),Named("x",v));
-}
+}//End nleqslvgnewton
 SEXP nleqslvhybrids(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd kv,
                     VectorXd R, double gamav, double muv){
   const gsl_multiroot_fsolver_type *T;
@@ -333,7 +333,7 @@ SEXP nleqslvhybrids(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd 
   
   NumericVector v = NumericVector::create(r1,r2);
   return List::create(Named("status",status),Named("x",v));
-}
+}//End nleqslvhybrids
 SEXP nleqslvbroyden(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd kv,
                     VectorXd R, double gamav, double muv){
   const gsl_multiroot_fsolver_type *T;
@@ -375,7 +375,7 @@ SEXP nleqslvbroyden(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd 
   
   NumericVector v = NumericVector::create(r1,r2);
   return List::create(Named("status",status),Named("x",v));
-}
+}//End nleqslvbroyden
 SEXP resiv(int n,NumericVector d, MatrixXd Q,MatrixXd kv, VectorXd R
              , double gamav, double muv, NumericVector tetav){
   bool cvge = true;
@@ -436,7 +436,7 @@ SEXP resiv(int n,NumericVector d, MatrixXd Q,MatrixXd kv, VectorXd R
     }
   }
   return 0;
-}
+}//End resiv
 // [[Rcpp::export]]
 SEXP penMetaMod_cpp(NumericVector Y,List matZ,List k_v,StringVector namG, List resg,
                     NumericVector gamma, NumericVector mu,NumericVector gama_v,
@@ -878,4 +878,4 @@ SEXP penMetaMod_cpp(NumericVector Y,List matZ,List k_v,StringVector namG, List r
     sme+=(ls-1);
   }//End of for(all mu)
   return Lme;
-}
+}//End penMetaMod_cpp

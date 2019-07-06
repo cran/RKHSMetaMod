@@ -6,6 +6,7 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
 using namespace Rcpp;
+using namespace std;
 struct tetafq_params
 {
   NumericVector d;

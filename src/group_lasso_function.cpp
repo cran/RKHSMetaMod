@@ -10,17 +10,15 @@ using Eigen::VectorXd;
 // [[Rcpp::depends(RcppGSL)]]
 
 using namespace Rcpp;
-
-struct tetaf_params
-{
+using namespace std;
+struct tetaf_params{
   NumericVector d;
   NumericVector sqd;
   MatrixXd Q;
   VectorXd R;
   double mqn;
 };
-double tetaf (double ro, void *params)
-{
+double tetaf (double ro, void *params){
   struct tetaf_params *p = (struct tetaf_params *) params;
 
   NumericVector d = p->d;
@@ -36,7 +34,7 @@ double tetaf (double ro, void *params)
 
   double y; y = (2*sqkvtetav_ro.norm())-mqn;
   return y;
-}// end tetaf
+}//End tetaf
 SEXP slv(NumericVector d,NumericVector sqd, MatrixXd Q, VectorXd R, double mqn,
          double t0, double t1){
   int status;
@@ -66,7 +64,7 @@ SEXP slv(NumericVector d,NumericVector sqd, MatrixXd Q, VectorXd R, double mqn,
   while (status == GSL_CONTINUE && iter < max_iter);
   gsl_root_fsolver_free (s);
   return List::create(Named("status",status),Named("x",r));
-}
+}//End slv
 // [[Rcpp::export]]
 SEXP RKHSgrplasso(NumericVector Y, List Kv, double mu, int maxIter=1000, bool verbose=false){
   double eps=1e-4;
@@ -571,4 +569,4 @@ SEXP RKHSgrplasso(NumericVector Y, List Kv, double mu, int maxIter=1000, bool ve
                        , Named("RelDiffCrit",rDiffCrit),Named("RelDiffPar",nrmRel));
   }//End if(active.size()!=0)
   return L;
-}
+}//End RKHSgrplasso

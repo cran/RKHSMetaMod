@@ -46,4 +46,4 @@ SEXP RKHSMetMod(NumericVector Y, NumericMatrix X, String kernel,
   List penMeMod; penMeMod = penMetaMod_cpp(Y,matZ,k_v,namG,resgl,gamma,mu,zerosv,zerosv,1000,
                                        verbose,false);
   return penMeMod;
-}
+}//End RKHSMetMod

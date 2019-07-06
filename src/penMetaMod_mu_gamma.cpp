@@ -11,6 +11,7 @@ using Eigen::VectorXd;
 // [[Rcpp::depends(RcppGSL)]]
 
 using namespace Rcpp;
+using namespace std;
 NumericVector getOneComponent(Rcpp::List liste, int l) {
   int lg = liste.size();
   if (l > lg) {
@@ -19,10 +20,9 @@ NumericVector getOneComponent(Rcpp::List liste, int l) {
   l = l - 1;
   Rcpp::NumericVector v(liste[l]);
   return(v);
-}
+}//End getOneComponent
 
-struct my_f_params
-{
+struct my_f_params{
   int n;
   VectorXd Z1;
   NumericVector d;
@@ -32,7 +32,7 @@ struct my_f_params
   double muv;
 };
 
-double my_f (double ro, void *params){
+double my_f(double ro, void *params){
   struct my_f_params *p = (struct my_f_params *) params;
   int n = p->n;
   VectorXd Z1 = p->Z1;
@@ -41,21 +41,21 @@ double my_f (double ro, void *params){
   MatrixXd Q = p->Q;
   MatrixXd kv = p->kv;
   double muv = p->muv;
-
+  
   NumericVector vp(n);
   vp = (muv*muv)/d + ro;
-
+  
   NumericVector indvp;
   indvp = 1/(vp * sqd);
-
+  
   NumericMatrix dg; dg = diag(indvp);
-
+  
   VectorXd xChap;
   xChap = muv * Q * as<MatrixXd>(dg) * Q.transpose() * Z1;
-
+  
   double NxChap; NxChap = xChap.norm()-1;
   return(NxChap);
-}
+}//End my_f
 double uniroot_cpp(int n,VectorXd Z1, NumericVector d,NumericVector sqd , MatrixXd Q,
                    MatrixXd kv , double muv, double t0, double t1){
   int status;
@@ -65,7 +65,7 @@ double uniroot_cpp(int n,VectorXd Z1, NumericVector d,NumericVector sqd , Matrix
   double r =0;
   double x_lo = t0, x_hi = t1;
   gsl_function F;
-
+  
   struct my_f_params params = {n,Z1, d,sqd , Q, kv, muv};
   F.function = &my_f;
   F.params = &params;
@@ -85,12 +85,12 @@ double uniroot_cpp(int n,VectorXd Z1, NumericVector d,NumericVector sqd , Matrix
   while (status == GSL_CONTINUE && iter < max_iter);
   gsl_root_fsolver_free (s);
   return r;
-}
+}//End uniroot_cpp
 SEXP optimV(int n,VectorXd Z1, NumericVector d,NumericVector sqd ,MatrixXd Q
-                 ,MatrixXd kv , double muv, double gamav){
+              ,MatrixXd kv , double muv, double gamav){
   List l;
   bool a = true ;
-
+  
   double nrm;
   nrm = sqrt(Z1.transpose()*kv*Z1);
   double mv;
@@ -109,7 +109,7 @@ SEXP optimV(int n,VectorXd Z1, NumericVector d,NumericVector sqd ,MatrixXd Q
       NumericMatrix dg; dg = diag(indvp);
       VectorXd xChap;
       xChap = muv * Q * as<MatrixXd>(dg) * Q.transpose() * Z1;
-
+      
       NxChap = xChap.norm();
     } while (NxChap>=1);
     if(ro==10){
@@ -125,7 +125,7 @@ SEXP optimV(int n,VectorXd Z1, NumericVector d,NumericVector sqd ,MatrixXd Q
       dg = diag(indvp);
       VectorXd Z1Chap;
       Z1Chap = muv*muv * Q * as<MatrixXd>(dg) * Q.transpose() * Z1;
-
+      
       VectorXd difZ;
       difZ = Z1-Z1Chap;
       double scr; scr = difZ.norm();
@@ -161,7 +161,7 @@ SEXP optimV(int n,VectorXd Z1, NumericVector d,NumericVector sqd ,MatrixXd Q
     }
   }
   return l;
-}
+}//End optimV
 struct rparams{
   NumericVector d;
   MatrixXd Q;
@@ -171,14 +171,14 @@ struct rparams{
   double muv;
 };
 
-int myFnct_f (const gsl_vector * x, void *params, gsl_vector * f){
+int myFnct_f(const gsl_vector * x, void *params, gsl_vector * f){
   NumericVector d = ((struct rparams *) params)->d;
   MatrixXd Q = ((struct rparams *) params)->Q;
   MatrixXd kv = ((struct rparams *) params)->kv;
   VectorXd R = ((struct rparams *) params)->R;
   double gamav = ((struct rparams *) params)->gamav;
   double muv = ((struct rparams *) params)->muv;
-
+  
   const double x1 = gsl_vector_get (x, 0);
   const double x2 = gsl_vector_get (x, 1);
   NumericVector vp;
@@ -187,7 +187,7 @@ int myFnct_f (const gsl_vector * x, void *params, gsl_vector * f){
   invp = 1/vp;
   NumericMatrix D;
   D = diag(invp);
-
+  
   VectorXd teta;
   teta = Q * as<MatrixXd>(D) * Q.transpose() * R;//r small
   VectorXd nm1;
@@ -200,15 +200,15 @@ int myFnct_f (const gsl_vector * x, void *params, gsl_vector * f){
   const double y1 = x2*Norm2-muv/2;
   gsl_vector_set (f, 0, y0);
   gsl_vector_set (f, 1, y1);
-
+  
   return GSL_SUCCESS;
-}
-int myFnct_df (const gsl_vector * x, void *params, gsl_matrix * J){
+}//End myFnct_f
+int myFnct_df(const gsl_vector * x, void *params, gsl_matrix * J){
   NumericVector d = ((struct rparams *) params)->d;
   MatrixXd Q = ((struct rparams *) params)->Q;
   MatrixXd kv = ((struct rparams *) params)->kv;
   VectorXd R = ((struct rparams *) params)->R;
-
+  
   const double x1 = gsl_vector_get (x, 0);
   const double x2 = gsl_vector_get (x, 1);
   NumericVector vp; vp = (1+x1)*d+x2;
@@ -216,25 +216,25 @@ int myFnct_df (const gsl_vector * x, void *params, gsl_matrix * J){
   NumericMatrix D; D = diag(invp);
   VectorXd teta;
   teta = Q * as<MatrixXd>(D) * Q.transpose() * R;// r small
-
+  
   VectorXd v1;
   v1 = kv * teta;
   double Norm1;
   Norm1 = v1.norm();
   double Norm2;
   Norm2 = sqrt(teta.transpose()*v1);
-
+  
   NumericVector invp2; invp2 = (1/vp)*(1/vp);
   NumericVector dinvp2; dinvp2 = d*invp2;
   NumericMatrix D2; D2 = diag(dinvp2);
-
+  
   VectorXd dalphadx1;
   dalphadx1 = -(Q * as<MatrixXd>(D2) * Q.transpose()  * R);
   NumericMatrix D3; D3 = diag(invp2);
-
+  
   VectorXd dalphadx2;
   dalphadx2 = -(Q * as<MatrixXd>(D3) * Q.transpose()  * R);
-
+  
   NumericVector d2; d2 = d*d;
   NumericMatrix DD; DD = diag(d2);
   MatrixXd cK2; cK2 = Q * as<MatrixXd>(DD) * Q.transpose();
@@ -256,20 +256,20 @@ int myFnct_df (const gsl_vector * x, void *params, gsl_matrix * J){
   gsl_matrix_set (J, 0, 1, df01);
   gsl_matrix_set (J, 1, 0, df10);
   gsl_matrix_set (J, 1, 1, df11);
-
+  
   return GSL_SUCCESS;
-}
-int myFnct_fdf (const gsl_vector * x, void *params, gsl_vector * f, gsl_matrix * J){
+}//End myFnct_df
+int myFnct_fdf(const gsl_vector * x, void *params, gsl_vector * f, gsl_matrix * J){
   myFnct_f (x, params, f);
   myFnct_df (x, params, J);
-
+  
   return GSL_SUCCESS;
-}
+}//End myFnct_fdf
 SEXP nleqslvgnewton_cpp(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd kv,
                         VectorXd R, double gamav, double muv){
   const gsl_multiroot_fdfsolver_type *T;
   gsl_multiroot_fdfsolver *s;
-
+  
   int status;
   size_t iter = 0;
   const size_t n = 2;
@@ -278,13 +278,13 @@ SEXP nleqslvgnewton_cpp(NumericVector xstart, NumericVector d, MatrixXd Q, Matri
                                   &myFnct_df,
                                   &myFnct_fdf,
                                   n, &p};
-
+  
   double x_init[2] = {xstart(0), xstart(1)};
   gsl_vector *x = gsl_vector_alloc (n);
-
+  
   gsl_vector_set (x, 0, x_init[0]);
   gsl_vector_set (x, 1, x_init[1]);
-
+  
   T = gsl_multiroot_fdfsolver_gnewton;
   s = gsl_multiroot_fdfsolver_alloc (T, n);
   gsl_multiroot_fdfsolver_set (s, &f, x);
@@ -294,41 +294,43 @@ SEXP nleqslvgnewton_cpp(NumericVector xstart, NumericVector d, MatrixXd Q, Matri
   do
   {
     iter++;
-
+    
     status = gsl_multiroot_fdfsolver_iterate (s);
     r1 = gsl_vector_get (s->x, 0);
     r2 = gsl_vector_get (s->x, 1);
     
     if (status)
       break;
-
+    
     status = gsl_multiroot_test_residual (s->f, 1e-7);
   }
   while (status == GSL_CONTINUE && iter < 500);
-
+  
+  
+  
   gsl_multiroot_fdfsolver_free (s);
   gsl_vector_free (x);
-
+  
   NumericVector v = NumericVector::create(r1,r2);
   return List::create(Named("status",status),Named("x",v));
-}
+}//End nleqslvgnewton_cpp
 SEXP nleqslvhybrids_cpp(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd kv,
                         VectorXd R, double gamav, double muv){
   const gsl_multiroot_fsolver_type *T;
   gsl_multiroot_fsolver *s;
-
+  
   int status;
   size_t iter = 0;
   const size_t n = 2;
   struct rparams p = {d,Q,kv,R,gamav,muv};
   gsl_multiroot_function f = {&myFnct_f, n, &p};
-
+  
   double x_init[2] = {xstart(0), xstart(1)};
   gsl_vector *x = gsl_vector_alloc (n);
-
+  
   gsl_vector_set (x, 0, x_init[0]);
   gsl_vector_set (x, 1, x_init[1]);
-
+  
   T = gsl_multiroot_fsolver_hybrids;
   s = gsl_multiroot_fsolver_alloc (T, n);
   gsl_multiroot_fsolver_set (s, &f, x);
@@ -338,41 +340,43 @@ SEXP nleqslvhybrids_cpp(NumericVector xstart, NumericVector d, MatrixXd Q, Matri
   do
   {
     iter++;
-
+    
     status = gsl_multiroot_fsolver_iterate (s);
     r1 = gsl_vector_get (s->x, 0);
     r2 = gsl_vector_get (s->x, 1);
     
     if (status)
       break;
-
+    
     status = gsl_multiroot_test_residual (s->f, 1e-7);
   }
   while (status == GSL_CONTINUE && iter < 500);
-
+  
+  
+  
   gsl_multiroot_fsolver_free (s);
   gsl_vector_free (x);
-
+  
   NumericVector v = NumericVector::create(r1,r2);
   return List::create(Named("status",status),Named("x",v));
-}
+}//End nleqslvhybrids_cpp
 SEXP nleqslvbroyden_cpp(NumericVector xstart, NumericVector d, MatrixXd Q, MatrixXd kv,
                         VectorXd R, double gamav, double muv){
   const gsl_multiroot_fsolver_type *T;
   gsl_multiroot_fsolver *s;
-
+  
   int status;
   size_t iter = 0;
   const size_t n = 2;
   struct rparams p = {d,Q,kv,R,gamav,muv};
   gsl_multiroot_function f = {&myFnct_f, n, &p};
-
+  
   double x_init[2] = {xstart(0), xstart(1)};
   gsl_vector *x = gsl_vector_alloc (n);
-
+  
   gsl_vector_set (x, 0, x_init[0]);
   gsl_vector_set (x, 1, x_init[1]);
-
+  
   T = gsl_multiroot_fsolver_broyden;
   s = gsl_multiroot_fsolver_alloc (T, n);
   gsl_multiroot_fsolver_set (s, &f, x);
@@ -382,26 +386,28 @@ SEXP nleqslvbroyden_cpp(NumericVector xstart, NumericVector d, MatrixXd Q, Matri
   do
   {
     iter++;
-
+    
     status = gsl_multiroot_fsolver_iterate (s);
     r1 = gsl_vector_get (s->x, 0);
     r2 = gsl_vector_get (s->x, 1);
     
     if (status)
       break;
-
+    
     status = gsl_multiroot_test_residual (s->f, 1e-7);
   }
   while (status == GSL_CONTINUE && iter < 500);
-
+  
+  
+  
   gsl_multiroot_fsolver_free (s);
   gsl_vector_free (x);
-
+  
   NumericVector v = NumericVector::create(r1,r2);
   return List::create(Named("status",status),Named("x",v));
-}
+}//End nleqslvbroyden_cpp
 SEXP resiV(int n,NumericVector d, MatrixXd Q,MatrixXd kv, VectorXd R
-                  , double gamav, double muv, NumericVector tetav){
+             , double gamav, double muv, NumericVector tetav){
   bool cvge = true;
   NumericVector xme(2);
   VectorXd ttv(n);
@@ -432,46 +438,50 @@ SEXP resiV(int n,NumericVector d, MatrixXd Q,MatrixXd kv, VectorXd R
   int status; status = sln1["status"];
   NumericVector x; x = sln1["x"];
   if(status==0){
+    
     return List::create(Named("x",x),Named("cvge",cvge));
   }// If no cvge with gNewton's method
   if(status!=0){
     // try nleqslv with Broyden method
     List sln2;
     sln2 = nleqslvbroyden_cpp(xstart, d, Q, kv, R, gamav, muv);
-
+    
     int status; status = sln2["status"];
     NumericVector x; x = sln2["x"];
     if(status==0){
+      
       return List::create(Named("x",x),Named("cvge",cvge));
     }//If no cvge with gNewton's and Broyden method
     if(status!=0){
       // try nleqslv with Hybrid method
       List sln3;
       sln3 = nleqslvhybrids_cpp(xstart, d, Q, kv, R, gamav, muv);
-
+      
       int status; status = sln3["status"];
       NumericVector x; x = sln3["x"];
       if(status==0){
+        
         return List::create(Named("x",x),Named("cvge",cvge));
       }//If no cvge with gNewton's and Broyden and Hybrid method
       if(status!=0){
+        
         return List::create(Named("cvge",!cvge));
       }
     }
   }
   return 0;
-}
+}//End resiV
 
 // [[Rcpp::export]]
 SEXP pen_MetMod(NumericVector Y,List Kv,NumericVector gamma, NumericVector mu,List resg,
-                    NumericVector gama_v,NumericVector mu_v,int maxIter=1000,
-                    bool verbose=false, bool calcStwo=false){
+                NumericVector gama_v,NumericVector mu_v,int maxIter=1000,
+                bool verbose=false, bool calcStwo=false){
   int n; n = Y.size();
   List matZ; matZ = Kv[0];
   StringVector namesGrp; namesGrp = Kv[1];
   int vMax; vMax = namesGrp.size();
   double eps; eps = 0.0001;
-
+  
   if((gama_v(0)&&mu_v(0))==0){
     gama_v = rep(1,vMax);
     mu_v = rep(1,vMax);
@@ -481,7 +491,6 @@ SEXP pen_MetMod(NumericVector Y,List Kv,NumericVector gamma, NumericVector mu,Li
   List Lme(lmu*ls);
   int sme=0;
   for(int lm=0;lm<lmu;lm++ ){
-    //double mu_i = sqrt(n)*mu[lm];
     double mu_i = n*mu[lm];
     List grp; grp = resg[lm];
     NumericVector supp_in; supp_in = grp["supp"];
@@ -499,359 +508,200 @@ SEXP pen_MetMod(NumericVector Y,List Kv,NumericVector gamma, NumericVector mu,Li
     
     NumericVector NormH_in(vMax);
     NormH_in = grp["Norm.H"];
-    
-  for(int il=0;il<ls;il++ ){
-    double gama; gama = sqrt(n)*gamma[il];
-    
-    List resK;
-
-    NumericVector muvs; muvs = mu_i*mu_v;
-    NumericVector gamavs; gamavs = gama*gama_v;
-
-    double c;
-    double SCR;
-    double crit;
-    NumericVector R(n);
-    VectorXd r(n);
-    List k_v(vMax);
-    MatrixXd kv(n,n);
-    VectorXd Z1(n);
-    double muv;
-    double gamav;
-    List a;
-    List sln;
-
-    double nrmRel;
-    double rDiffCrit;
-    double nrmRel2;
-    double rDiffCrit2;
-    NumericMatrix old_teta(vMax,n);
-
-    bool convergence;
-
-    NumericVector zerosv(vMax);
-    NumericVector zeros(n);
-    NumericVector tetav(n);
-
-    NumericMatrix teta(vMax,n);
-    for(int l=0; l<vMax;l++){
-      teta(l,_) = teta_in(l,_);
-    }
-    NumericMatrix fitv(n,vMax);
+    for(int il=0;il<ls;il++ ){
+      double gama; gama = sqrt(n)*gamma[il];
+      List resK;
+      
+      NumericVector muvs; muvs = mu_i*mu_v;
+      NumericVector gamavs; gamavs = gama*gama_v;
+      
+      double c;
+      double SCR;
+      double crit;
+      NumericVector R(n);
+      VectorXd r(n);
+      List k_v(vMax);
+      MatrixXd kv(n,n);
+      VectorXd Z1(n);
+      double muv;
+      double gamav;
+      List a;
+      List sln;
+      
+      double nrmRel;
+      double rDiffCrit;
+      double nrmRel2;
+      double rDiffCrit2;
+      NumericMatrix old_teta(vMax,n);
+      
+      bool convergence;
+      
+      NumericVector zerosv(vMax);
+      NumericVector zeros(n);
+      NumericVector tetav(n);
+      
+      NumericMatrix teta(vMax,n);
+      for(int l=0; l<vMax;l++){
+        teta(l,_) = teta_in(l,_);
+      }
+      NumericMatrix fitv(n,vMax);
       for(int l=0; l<vMax;l++){
         fitv(_,l) = fitv_in(_,l);
       }
-    NumericVector Norm_H(vMax);
+      NumericVector Norm_H(vMax);
       for(int l=0; l<vMax;l++){
         Norm_H(l) = NormH_in(l);
       }
-    NumericVector Norm_n(vMax);
-    Norm_n.names() = namesGrp;
-    Norm_H.names()=namesGrp;
-
-    //Step 1
-    NumericVector supp;
+      NumericVector Norm_n(vMax);
+      Norm_n.names() = namesGrp;
+      Norm_H.names()=namesGrp;
+      
+      //Step 1
+      NumericVector supp;
       for(int s=0;s<supp_in.size();s++){
         supp.push_back(supp_in[s]);
       }
-    double penalite = 0;
-    NumericVector fitted(n);
-    for(int v=0;v<vMax;v++){
-      resK = matZ[v];
-      NumericVector d;
-      d = getOneComponent(resK,1);
-      MatrixXd Q; Q = resK["Q"];
-      NumericMatrix D; D = diag(d);
-      kv =  Q * as<MatrixXd>(D) * Q.transpose();
-      k_v[v]=kv;
-    }
-    if(supp.size()>0){
-      for(NumericVector::iterator v = supp.begin(); v != supp.end(); ++v) {
-        resK = matZ[(*v-1)];
+      double penalite = 0;
+      NumericVector fitted(n);
+      for(int v=0;v<vMax;v++){
+        resK = matZ[v];
         NumericVector d;
         d = getOneComponent(resK,1);
         MatrixXd Q; Q = resK["Q"];
-        tetav = teta((*v-1),_);
-
-        Norm_n(*v-1) = sqrt(sum(pow(fitv(_,(*v-1)),2)));
-        fitted = fitted + fitv(_,(*v-1));
-        penalite = penalite + gamavs(*v-1) * Norm_n(*v-1) + muvs(*v-1) * Norm_H(*v-1);
+        NumericMatrix D; D = diag(d);
+        kv =  Q * as<MatrixXd>(D) * Q.transpose();
+        k_v[v]=kv;
       }
-    }
-    c = mean(Y-fitted);
-    NumericVector ycf; ycf = Y-c-fitted;
-    VectorXd ycfX; ycfX = as<VectorXd>(ycf);
-    double ycfnorm; ycfnorm = ycfX.norm();
-    SCR = pow(ycfnorm,2);
-    
-    crit = SCR + penalite;
-    int ii; ii=0;
-    NumericVector support;
-    do{
-      convergence = true;
-      ii = ii+1;
-      if(verbose){Rcout<<"Iteration number in Step1 is "<<ii<<"\n";}
-      for(int l=0; l<vMax;l++){
-        old_teta(l,_) = teta(l,_);
-      }
-      double critii; critii = crit;
       if(supp.size()>0){
-        for(NumericVector::iterator v = supp.begin(); v != supp.end(); ++v){
+        for(NumericVector::iterator v = supp.begin(); v != supp.end(); ++v) {
           resK = matZ[(*v-1)];
-          NumericVector d(n);
+          NumericVector d;
           d = getOneComponent(resK,1);
           MatrixXd Q; Q = resK["Q"];
-          MatrixXd kv = k_v[(*v-1)];
-          tetav = old_teta(*v-1,_);
-          NumericVector S(n);
-          int ss=0;
-          if(supp.size()==2){
-            if(supp[0] == *v){
-              ss = supp[1]-1;
-              S = fitv(_,ss);
-            }
-            if(supp[1] == *v){
-              ss = supp[0]-1;
-              S = fitv(_,ss);
-            }
-          }
-          if(supp.size()>2){
-            NumericVector sv;
-            for(int is=0;is<supp.size();is++){
-              if(supp[is] != *v){
-                ss = supp[is];
-                sv.push_back(ss);
-              }
-            }
-            for(NumericVector::iterator ivv = sv.begin(); ivv != sv.end(); ++ivv){
-              S += fitv(_,(*ivv-1));
-            }
-          }
-          if(supp.size()==1){
-            S = zeros;
-          }
-          c = mean(Y-S-fitv(_,(*v-1)));
-          R = Y-c-S;
-          r = as<VectorXd>(R);
-          Z1 = 2*r;
-          NumericVector sqd = sqrt(d);
-          muv = muvs[(*v-1)];
-          gamav = gamavs[(*v-1)];
-
-          a = optimV(n,Z1,d,sqd ,Q,kv , muv,gamav);
-          bool zero; zero = a["a"];
-          if(zero){
-            teta((*v-1),_) = zeros;
-            fitv(_,(*v-1)) = zeros;
-          }
-          if (!zero) {
-            sln = resiV(n,d, Q,kv, r, gamav, muv, tetav);
-            bool cvge; cvge = sln["cvge"];
-            if (!cvge) {
-              if(verbose){
-                Rcout<<"ii : "<<ii<<"convergence failed for group : "<<namesGrp[(*v-1)]<<"\n";
-              }
-              teta((*v-1),_) = tetav;
-              convergence = false;
-            }
-            if (cvge) {
-              NumericVector x; x = sln["x"];
-              NumericVector vp; vp = (1+x(0)) * d+x(1);
-              NumericVector invp; invp = 1/vp;
-              NumericMatrix ivp; ivp = diag(invp);
-              VectorXd vcc; vcc = Q * as<MatrixXd>(ivp) * Q.transpose() * r;
-              NumericVector vcc0; vcc0 = vcc;
-              teta((*v-1),_) = vcc0;
-              VectorXd ckvteta; ckvteta = kv * vcc;
-              NumericVector ckvteta0; ckvteta0 = ckvteta;
-              fitv(_,(*v-1)) = ckvteta0;
-            }
-          }// end if (!zero) {
-        }// end for(v in supp){
-      }// end if (length(supp) >0)
-      //Rcout<<"convergence is"<<convergence<<"\n";
-      Norm_H = 0*Norm_H;
-      Norm_n = 0*Norm_n;
-      if(convergence){
-        MatrixXd ttdef; ttdef = as<MatrixXd>(teta)-as<MatrixXd>(old_teta);
-        double nrm; nrm = ttdef.norm();
-        double nrmii; nrmii = (as<MatrixXd>(old_teta)).norm();
-        if (nrmii>0) {nrmRel = (nrm/nrmii)*(nrm/nrmii);}
-        if (nrmii==0) {nrmRel = nrm*nrm;}
-        penalite = 0;
-        fitted = rep(c,n);
-        NumericVector suppStep1;
-        if(supp.size()>0){
-          for(NumericVector::iterator v = supp.begin(); v != supp.end(); ++v){
-            if(sum(pow(fitv(_,(*v-1)),2))>1/pow(10,8)){
-              suppStep1.push_back(*v);
-            }
-          }
+          tetav = teta((*v-1),_);
+          
+          Norm_n(*v-1) = sqrt(sum(pow(fitv(_,(*v-1)),2)));
+          fitted = fitted + fitv(_,(*v-1));
+          penalite = penalite + gamavs(*v-1) * Norm_n(*v-1) + muvs(*v-1) * Norm_H(*v-1);
         }
-        support = suppStep1;
-        if(suppStep1.size()>0){
-          for(NumericVector::iterator v = suppStep1.begin(); v != suppStep1.end(); ++v){
-            Norm_n(*v-1)=sqrt(sum(pow(fitv(_,(*v-1)),2)));
-            kv = k_v[(*v-1)];
-            NumericVector tetav; tetav = teta((*v-1),_);
-            VectorXd tetv; tetv = as<VectorXd>(tetav);
-            Norm_H(*v-1) = sqrt(tetv.transpose()*kv*tetv);
-            fitted = fitted + fitv(_,(*v-1));
-            penalite = penalite+gamavs[(*v-1)]*Norm_n(*v-1)+muvs[(*v-1)]*Norm_H(*v-1);
-          }
-        }
-        NumericVector yf; yf = Y-fitted;
-        int yfsize; yfsize = yf.size();
-        yf.attr("dim") = Dimension(yfsize,1);
-        MatrixXd yfm; yfm = as<MatrixXd>(yf);
-        SCR = pow(yfm.norm(),2);
-        
-        crit = SCR+penalite;
-        rDiffCrit = abs((critii-crit)/critii);
-          if(verbose){
-            Rcout<<"Active support in Step1 is "<<support<<"\n";
-            Rcout<<"rDiffCrit=crit_i-crit_(i-1)/crit_i in Step1 is "<<rDiffCrit<<"\n";
-            Rcout<<"nrmRel=(norm(teta_i-teta_(i-1))/norm(teta_(i-1)))^2 in Step1 is "<<nrmRel<<"\n";
-          }
-        // 0 is false and 1 is true : 0&1 = 0 ,...
-        int brk; brk = ((nrmRel<eps)&(rDiffCrit<eps));
-        // 0&&1 = false
-        if (brk&&(ii>=1)) break;
-      }// end  if (convergence){
-    } while (ii<=maxIter);
-    if (ii>maxIter) {
-      convergence = false;
-    }
-    //  End of Step 1
-
-    int iiStep1 = ii;
-    double nrmRelStep1 = nrmRel;
-    double rDiffCritStep1 = rDiffCrit;
-    if(!calcStwo){
-      if(convergence){
-        colnames(fitv) = namesGrp;
-        StringVector Nsupp;
-        if(support.size()>0) Nsupp = namesGrp[(support-1)];
-        rownames(teta) = namesGrp;
-        List iter = List::create(Named("maxIter",maxIter),Named("Step1",iiStep1));
-        List rtrn = List::create(Named("intercept",c),Named("teta",teta),Named("fit.v",fitv),
-                                       Named("fitted",fitted),Named("Norm.n",Norm_n),Named("Norm.H",Norm_H),
-                                       Named("supp",support),Named("Nsupp",Nsupp),Named("SCR",SCR),
-                                       Named("crit",crit),Named("gamma.v",gamavs),Named("mu.v",muvs),
-                                       Named("iter",iter),Named("convergence",convergence),
-                                       Named("RelDiffCrit",rDiffCritStep1),Named("RelDiffPar",nrmRelStep1));
-        Lme[il+lm+sme]=List::create(Named("mu",mu[lm]),Named("gamma",gamma[il]),Named("Meta-Model",rtrn));
-      }//if(convergence)
-      if(!convergence){
-        StringVector Nsupp;
-        if(support.size()>0) Nsupp = namesGrp[(support-1)];
-        rownames(teta) = namesGrp;
-        List iter = List::create(Named("maxIter",maxIter),Named("Step1",iiStep1));
-        List rtrn = List::create(Named("intercept",c),Named("teta",teta),Named("supp",support),
-                                       Named("Nsupp",Nsupp),Named("gamma.v",gamavs),Named("mu.v",muvs),
-                                       Named("iter",iter),Named("convergence",convergence));
-        Lme[il+lm+sme]=List::create(Named("mu",mu[lm]),Named("gamma",gamma[il]),Named("Meta-Model",rtrn));
-      }//if(!convergence)
-    }//if(!calcStwo)
-    //  Step 2 :
-    if(calcStwo){
-      if(verbose){Rcout<<"Start step2 and supp of Step1 is "<<support<<"\n";}
-      supp = zerosv;
-      NumericVector supp2;
-      ii = 0;
-      double crit2; crit2 = crit;
+      }
+      c = mean(Y-fitted);
+      NumericVector ycf; ycf = Y-c-fitted;
+      VectorXd ycfX; ycfX = as<VectorXd>(ycf);
+      double ycfnorm; ycfnorm = ycfX.norm();
+      SCR = pow(ycfnorm,2);
+      crit = SCR + penalite;
+      int ii; ii=0;
+      NumericVector support;
       do{
         convergence = true;
         ii = ii+1;
-        if(verbose){Rcout<<"Iteration number in Step2 is "<<ii<<"\n";}
+        if(verbose){Rcout<<"Iteration number in Step1 is "<<ii<<"\n";}
         for(int l=0; l<vMax;l++){
           old_teta(l,_) = teta(l,_);
         }
-        double critii; critii = crit2;
-        for(int v=0; v<vMax; ++v){
-          resK = matZ[v];
-          NumericVector d;
-          d = getOneComponent(resK,1);
-          NumericVector sqd(n);
-          sqd = sqrt(d);
-          MatrixXd Q; Q = resK["Q"];
-          tetav = old_teta(v,_);
-          MatrixXd kv = k_v[v];
-          NumericVector sv(0);
-          NumericVector S(n);
-          for(int is=0;is<vMax;is++){
-            if(is != v){
-              sv.push_back(is);
-            }
-          }
-          for(NumericVector::iterator ivv = sv.begin(); ivv != sv.end(); ++ivv){
-            S += fitv(_,*ivv);
-          }
-          c = mean(Y-S-fitv(_,v));
-          R = Y-c-S;
-          r = as<VectorXd>(R);
-          Z1 = 2*r;
-          muv = muvs[v];
-          gamav = gamavs[v];
-          a = optimV(n,Z1,d,sqd ,Q,kv , muv,gamav);
-          bool zero; zero =a["a"];
-
-          if(zero){
-            teta(v,_) = zeros;
-            fitv(_,v) = zeros;
-            supp[v]=0;
-          }
-
-          if (!zero) {
-            supp[v]=1;
-            sln = resiV(n,d, Q,kv, r, gamav, muv, tetav);
-            bool cvge; cvge = sln["cvge"];
-            if (!cvge) {
-              if(verbose){
-                Rcout<<"ii : "<<ii<<"convergence failed for group : "<<namesGrp[v]<<"\n";
+        double critii; critii = crit;
+        if(supp.size()>0){
+          for(NumericVector::iterator v = supp.begin(); v != supp.end(); ++v){
+            resK = matZ[(*v-1)];
+            NumericVector d(n);
+            d = getOneComponent(resK,1);
+            MatrixXd Q; Q = resK["Q"];
+            MatrixXd kv = k_v[(*v-1)];
+            tetav = old_teta(*v-1,_);
+            NumericVector S(n);
+            int ss=0;
+            if(supp.size()==2){
+              if(supp[0] == *v){
+                ss = supp[1]-1;
+                S = fitv(_,ss);
               }
-              teta(v,_) = tetav;
-              convergence = false;
+              if(supp[1] == *v){
+                ss = supp[0]-1;
+                S = fitv(_,ss);
+              }
             }
-            if (cvge) {
-              NumericVector x; x = sln["x"];
-              NumericVector vp; vp = (1+x(0)) * d+x(1);
-              NumericVector invp; invp = 1/vp;
-              NumericMatrix ivp; ivp = diag(invp);
-              VectorXd vcc; vcc = Q * as<MatrixXd>(ivp) * Q.transpose() * r;
-              NumericVector vcc0; vcc0 = vcc;
-              teta(v,_) = vcc0;
-              VectorXd ckvteta;
-              ckvteta = kv * vcc;
-              NumericVector ckvteta0; ckvteta0 = ckvteta;
-              fitv(_,v) = ckvteta0;
+            if(supp.size()>2){
+              NumericVector sv;
+              for(int is=0;is<supp.size();is++){
+                if(supp[is] != *v){
+                  ss = supp[is];
+                  sv.push_back(ss);
+                }
+              }
+              for(NumericVector::iterator ivv = sv.begin(); ivv != sv.end(); ++ivv){
+                S += fitv(_,(*ivv-1));
+              }
             }
-          }// end if (!zero) {
-        }//end for(v in 1:vMax) {
+            if(supp.size()==1){
+              S = zeros;
+            }
+            c = mean(Y-S-fitv(_,(*v-1)));
+            R = Y-c-S;
+            r = as<VectorXd>(R);
+            Z1 = 2*r;
+            NumericVector sqd = sqrt(d);
+            muv = muvs[(*v-1)];
+            gamav = gamavs[(*v-1)];
+            
+            a = optimV(n,Z1,d,sqd ,Q,kv , muv,gamav);
+            bool zero; zero = a["a"];
+            if(zero){
+              teta((*v-1),_) = zeros;
+              fitv(_,(*v-1)) = zeros;
+            }
+            if (!zero) {
+              sln = resiV(n,d, Q,kv, r, gamav, muv, tetav);
+              bool cvge; cvge = sln["cvge"];
+              if (!cvge) {
+                if(verbose){
+                  Rcout<<"ii : "<<ii<<"convergence failed for group : "<<namesGrp[(*v-1)]<<"\n";
+                }
+                teta((*v-1),_) = tetav;
+                convergence = false;
+              }
+              if (cvge) {
+                NumericVector x; x = sln["x"];
+                NumericVector vp; vp = (1+x(0)) * d+x(1);
+                NumericVector invp; invp = 1/vp;
+                NumericMatrix ivp; ivp = diag(invp);
+                VectorXd vcc; vcc = Q * as<MatrixXd>(ivp) * Q.transpose() * r;
+                NumericVector vcc0; vcc0 = vcc;
+                teta((*v-1),_) = vcc0;
+                VectorXd ckvteta; ckvteta = kv * vcc;
+                NumericVector ckvteta0; ckvteta0 = ckvteta;
+                fitv(_,(*v-1)) = ckvteta0;
+              }
+            }// end if (!zero) {
+          }// end for(v in supp){
+        }// end if (length(supp) >0)
+        //Rcout<<"convergence is"<<convergence<<"\n";
         Norm_H = 0*Norm_H;
         Norm_n = 0*Norm_n;
         if(convergence){
-          NumericVector sq; sq = seq(1,vMax);
-          supp2 = sq[(supp==1)];
-          MatrixXd adef; adef = as<MatrixXd>(teta)-as<MatrixXd>(old_teta);
-          double nrm; nrm = adef.norm();
+          MatrixXd ttdef; ttdef = as<MatrixXd>(teta)-as<MatrixXd>(old_teta);
+          double nrm; nrm = ttdef.norm();
           double nrmii; nrmii = (as<MatrixXd>(old_teta)).norm();
-          if (nrmii>0) {nrmRel2 = (nrm/nrmii)*(nrm/nrmii);}
-          if (nrmii==0) {nrmRel2 = nrm*nrm;}
+          if (nrmii>0) {nrmRel = (nrm/nrmii)*(nrm/nrmii);}
+          if (nrmii==0) {nrmRel = nrm*nrm;}
           penalite = 0;
           fitted = rep(c,n);
-          if(supp2.size()>0){
-            for(NumericVector::iterator v = supp2.begin(); v != supp2.end(); ++v){
-              resK = matZ[(*v-1)];
-              NumericVector d;
-              d = getOneComponent(resK,1);
-              MatrixXd Q; Q = resK["Q"];
-              MatrixXd kv = k_v[(*v-1)];
-              Norm_n(*v-1) = sqrt(sum(pow(fitv(_,(*v-1)),2)));
-              NumericVector tetav = teta((*v-1),_);
-              VectorXd tetv = as<VectorXd>(tetav);
-              double norm_hv = sqrt(tetv.transpose()*kv*tetv);
-              Norm_H(*v-1) = norm_hv;
+          NumericVector suppStep1;
+          if(supp.size()>0){
+            for(NumericVector::iterator v = supp.begin(); v != supp.end(); ++v){
+              if(sum(pow(fitv(_,(*v-1)),2))>1/pow(10,8)){
+                suppStep1.push_back(*v);
+              }
+            }
+          }
+          support = suppStep1;
+          if(suppStep1.size()>0){
+            for(NumericVector::iterator v = suppStep1.begin(); v != suppStep1.end(); ++v){
+              Norm_n(*v-1)=sqrt(sum(pow(fitv(_,(*v-1)),2)));
+              kv = k_v[(*v-1)];
+              NumericVector tetav; tetav = teta((*v-1),_);
+              VectorXd tetv; tetv = as<VectorXd>(tetav);
+              Norm_H(*v-1) = sqrt(tetv.transpose()*kv*tetv);
               fitted = fitted + fitv(_,(*v-1));
               penalite = penalite+gamavs[(*v-1)]*Norm_n(*v-1)+muvs[(*v-1)]*Norm_H(*v-1);
             }
@@ -861,57 +711,211 @@ SEXP pen_MetMod(NumericVector Y,List Kv,NumericVector gamma, NumericVector mu,Li
           yf.attr("dim") = Dimension(yfsize,1);
           MatrixXd yfm; yfm = as<MatrixXd>(yf);
           SCR = pow(yfm.norm(),2);
-          
-          crit2 = SCR+penalite;
-          rDiffCrit2 = abs((critii-crit2)/critii);
+          crit = SCR+penalite;
+          rDiffCrit = abs((critii-crit)/critii);
           if(verbose){
-            Rcout<<"Active support in Step2 is "<<supp2<<"\n";
-            Rcout<<"rDiffCrit=crit_i-crit_(i-1)/crit_i in Step2 is "<<rDiffCrit2<<"\n";
-            Rcout<<"nrmRel=(norm(teta_i-teta_(i-1))/norm(teta_(i-1)))^2 in Step2 is "<<nrmRel2<<"\n";
+            Rcout<<"Active support in Step1 is "<<support<<"\n";
+            Rcout<<"rDiffCrit=crit_i-crit_(i-1)/crit_i in Step1 is "<<rDiffCrit<<"\n";
+            Rcout<<"nrmRel=(norm(teta_i-teta_(i-1))/norm(teta_(i-1)))^2 in Step1 is "<<nrmRel<<"\n";
           }
           // 0 is false and 1 is true : 0&1 = 0 ,...
-          int brk; brk = ((nrmRel2<eps)&(rDiffCrit2<eps));
+          int brk; brk = ((nrmRel<eps)&(rDiffCrit<eps));
           // 0&&1 = false
           if (brk&&(ii>=1)) break;
-        }// end  if (convergence) {
+        }// end  if (convergence){
       } while (ii<=maxIter);
       if (ii>maxIter) {
         convergence = false;
       }
-      //end of do
-      double rDiffCritStep2 = rDiffCrit2;
-      double nrmRelStep2 = nrmRel2;
-      //  End of Step 2
-      if(convergence){
-        colnames(fitv) = namesGrp;
-        StringVector Nsupp;
-        if(supp.size()>0) Nsupp = namesGrp[(supp2-1)];
-        rownames(teta) = namesGrp;
-
-        List RelDiffCrit = List::create(Named("Step1",rDiffCritStep1),Named("Step2",rDiffCritStep2));
-        List RelDiffPar = List::create(Named("Step1",nrmRelStep1),Named("Step2",nrmRelStep2));
-        List iter = List::create(Named("maxIter",maxIter),Named("Step1",iiStep1),Named("Step2",ii));
-        List rtrn = List::create(Named("intercept",c),Named("teta",teta),Named("fit.v",fitv),
-                                       Named("fitted",fitted),Named("Norm.n",Norm_n),Named("Norm.H",Norm_H),
-                                       Named("supp",supp2),Named("Nsupp",Nsupp),Named("SCR",SCR),
-                                       Named("crit",crit),Named("gamma.v",gamavs),Named("mu.v",muvs),
-                                       Named("iter",iter),Named("convergence",convergence),
-                                       Named("RelDiffCrit",RelDiffCrit),Named("RelDiffPar",RelDiffPar));
-        Lme[il+lm+sme]=List::create(Named("mu",mu[lm]),Named("gamma",gamma[il]),Named("Meta-Model",rtrn));
-      }//if(convergence)
-      if(!convergence){
-        StringVector Nsupp;
-        if(supp.size()>0) Nsupp = namesGrp[(supp2-1)];
-        rownames(teta) = namesGrp;
-        List iter = List::create(Named("maxIter",maxIter),Named("Step1",iiStep1),Named("Step2",ii));
-        List rtrn = List::create(Named("intercept",c),Named("teta",teta),Named("supp",supp2),
-                                       Named("Nsupp",Nsupp),Named("gamma.v",gamavs),Named("mu.v",muvs),
-                                       Named("iter",iter),Named("convergence",convergence));
-        Lme[il+lm+sme]=List::create(Named("mu",mu[lm]),Named("gamma",gamma[il]),Named("Meta-Model",rtrn));
-      }//if(!convergence)
-    }//if(calcStwo)
-  }//End of for(all gamma)
-  sme+=(ls-1);
- }
+      //  End of Step 1
+      
+      int iiStep1 = ii;
+      double nrmRelStep1 = nrmRel;
+      double rDiffCritStep1 = rDiffCrit;
+      if(!calcStwo){
+        if(convergence){
+          colnames(fitv) = namesGrp;
+          StringVector Nsupp;
+          if(support.size()>0) Nsupp = namesGrp[(support-1)];
+          rownames(teta) = namesGrp;
+          List iter = List::create(Named("maxIter",maxIter),Named("Step1",iiStep1));
+          List rtrn = List::create(Named("intercept",c),Named("teta",teta),Named("fit.v",fitv),
+                                         Named("fitted",fitted),Named("Norm.n",Norm_n),Named("Norm.H",Norm_H),
+                                         Named("supp",support),Named("Nsupp",Nsupp),Named("SCR",SCR),
+                                         Named("crit",crit),Named("gamma.v",gamavs),Named("mu.v",muvs),
+                                         Named("iter",iter),Named("convergence",convergence),
+                                         Named("RelDiffCrit",rDiffCritStep1),Named("RelDiffPar",nrmRelStep1));
+          Lme[il+lm+sme]=List::create(Named("mu",mu[lm]),Named("gamma",gamma[il]),Named("Meta-Model",rtrn));
+        }//if(convergence)
+        if(!convergence){
+          StringVector Nsupp;
+          if(support.size()>0) Nsupp = namesGrp[(support-1)];
+          rownames(teta) = namesGrp;
+          List iter = List::create(Named("maxIter",maxIter),Named("Step1",iiStep1));
+          List rtrn = List::create(Named("intercept",c),Named("teta",teta),Named("supp",support),
+                                         Named("Nsupp",Nsupp),Named("gamma.v",gamavs),Named("mu.v",muvs),
+                                         Named("iter",iter),Named("convergence",convergence));
+          Lme[il+lm+sme]=List::create(Named("mu",mu[lm]),Named("gamma",gamma[il]),Named("Meta-Model",rtrn));
+        }//if(!convergence)
+      }//if(!calcStwo)
+      //  Step 2 :
+      if(calcStwo){
+        if(verbose){Rcout<<"Start step2 and supp of Step1 is "<<support<<"\n";}
+        supp = zerosv;
+        NumericVector supp2;
+        ii = 0;
+        double crit2; crit2 = crit;
+        do{
+          convergence = true;
+          ii = ii+1;
+          if(verbose){Rcout<<"Iteration number in Step2 is "<<ii<<"\n";}
+          for(int l=0; l<vMax;l++){
+            old_teta(l,_) = teta(l,_);
+          }
+          double critii; critii = crit2;
+          for(int v=0; v<vMax; ++v){
+            resK = matZ[v];
+            NumericVector d;
+            d = getOneComponent(resK,1);
+            NumericVector sqd(n);
+            sqd = sqrt(d);
+            MatrixXd Q; Q = resK["Q"];
+            tetav = old_teta(v,_);
+            MatrixXd kv = k_v[v];
+            NumericVector sv(0);
+            NumericVector S(n);
+            for(int is=0;is<vMax;is++){
+              if(is != v){
+                sv.push_back(is);
+              }
+            }
+            for(NumericVector::iterator ivv = sv.begin(); ivv != sv.end(); ++ivv){
+              S += fitv(_,*ivv);
+            }
+            c = mean(Y-S-fitv(_,v));
+            R = Y-c-S;
+            r = as<VectorXd>(R);
+            Z1 = 2*r;
+            muv = muvs[v];
+            gamav = gamavs[v];
+            a = optimV(n,Z1,d,sqd ,Q,kv , muv,gamav);
+            bool zero; zero =a["a"];
+            
+            if(zero){
+              teta(v,_) = zeros;
+              fitv(_,v) = zeros;
+              supp[v]=0;
+            }
+            
+            if (!zero) {
+              supp[v]=1;
+              sln = resiV(n,d, Q,kv, r, gamav, muv, tetav);
+              bool cvge; cvge = sln["cvge"];
+              if (!cvge) {
+                if(verbose){
+                  Rcout<<"ii : "<<ii<<"convergence failed for group : "<<namesGrp[v]<<"\n";
+                }
+                teta(v,_) = tetav;
+                convergence = false;
+              }
+              if (cvge) {
+                NumericVector x; x = sln["x"];
+                NumericVector vp; vp = (1+x(0)) * d+x(1);
+                NumericVector invp; invp = 1/vp;
+                NumericMatrix ivp; ivp = diag(invp);
+                VectorXd vcc; vcc = Q * as<MatrixXd>(ivp) * Q.transpose() * r;
+                NumericVector vcc0; vcc0 = vcc;
+                teta(v,_) = vcc0;
+                VectorXd ckvteta;
+                ckvteta = kv * vcc;
+                NumericVector ckvteta0; ckvteta0 = ckvteta;
+                fitv(_,v) = ckvteta0;
+              }
+            }// end if (!zero) {
+          }//end for(v in 1:vMax) {
+          Norm_H = 0*Norm_H;
+          Norm_n = 0*Norm_n;
+          if(convergence){
+            NumericVector sq; sq = seq(1,vMax);
+            supp2 = sq[(supp==1)];
+            MatrixXd adef; adef = as<MatrixXd>(teta)-as<MatrixXd>(old_teta);
+            double nrm; nrm = adef.norm();
+            double nrmii; nrmii = (as<MatrixXd>(old_teta)).norm();
+            if (nrmii>0) {nrmRel2 = (nrm/nrmii)*(nrm/nrmii);}
+            if (nrmii==0) {nrmRel2 = nrm*nrm;}
+            penalite = 0;
+            fitted = rep(c,n);
+            if(supp2.size()>0){
+              for(NumericVector::iterator v = supp2.begin(); v != supp2.end(); ++v){
+                resK = matZ[(*v-1)];
+                NumericVector d;
+                d = getOneComponent(resK,1);
+                MatrixXd Q; Q = resK["Q"];
+                MatrixXd kv = k_v[(*v-1)];
+                Norm_n(*v-1) = sqrt(sum(pow(fitv(_,(*v-1)),2)));
+                NumericVector tetav = teta((*v-1),_);
+                VectorXd tetv = as<VectorXd>(tetav);
+                double norm_hv = sqrt(tetv.transpose()*kv*tetv);
+                Norm_H(*v-1) = norm_hv;
+                fitted = fitted + fitv(_,(*v-1));
+                penalite = penalite+gamavs[(*v-1)]*Norm_n(*v-1)+muvs[(*v-1)]*Norm_H(*v-1);
+              }
+            }
+            NumericVector yf; yf = Y-fitted;
+            int yfsize; yfsize = yf.size();
+            yf.attr("dim") = Dimension(yfsize,1);
+            MatrixXd yfm; yfm = as<MatrixXd>(yf);
+            SCR = pow(yfm.norm(),2);
+            crit2 = SCR+penalite;
+            rDiffCrit2 = abs((critii-crit2)/critii);
+            if(verbose){
+              Rcout<<"Active support in Step2 is "<<supp2<<"\n";
+              Rcout<<"rDiffCrit=crit_i-crit_(i-1)/crit_i in Step2 is "<<rDiffCrit2<<"\n";
+              Rcout<<"nrmRel=(norm(teta_i-teta_(i-1))/norm(teta_(i-1)))^2 in Step2 is "<<nrmRel2<<"\n";
+            }
+            // 0 is false and 1 is true : 0&1 = 0 ,...
+            int brk; brk = ((nrmRel2<eps)&(rDiffCrit2<eps));
+            // 0&&1 = false
+            if (brk&&(ii>=1)) break;
+          }// end  if (convergence) {
+        } while (ii<=maxIter);
+        if (ii>maxIter) {
+          convergence = false;
+        }
+        //end of do
+        double rDiffCritStep2 = rDiffCrit2;
+        double nrmRelStep2 = nrmRel2;
+        //  End of Step 2
+        if(convergence){
+          colnames(fitv) = namesGrp;
+          StringVector Nsupp;
+          if(supp.size()>0) Nsupp = namesGrp[(supp2-1)];
+          rownames(teta) = namesGrp;
+          
+          List RelDiffCrit = List::create(Named("Step1",rDiffCritStep1),Named("Step2",rDiffCritStep2));
+          List RelDiffPar = List::create(Named("Step1",nrmRelStep1),Named("Step2",nrmRelStep2));
+          List iter = List::create(Named("maxIter",maxIter),Named("Step1",iiStep1),Named("Step2",ii));
+          List rtrn = List::create(Named("intercept",c),Named("teta",teta),Named("fit.v",fitv),
+                                         Named("fitted",fitted),Named("Norm.n",Norm_n),Named("Norm.H",Norm_H),
+                                         Named("supp",supp2),Named("Nsupp",Nsupp),Named("SCR",SCR),
+                                         Named("crit",crit),Named("gamma.v",gamavs),Named("mu.v",muvs),
+                                         Named("iter",iter),Named("convergence",convergence),
+                                         Named("RelDiffCrit",RelDiffCrit),Named("RelDiffPar",RelDiffPar));
+          Lme[il+lm+sme]=List::create(Named("mu",mu[lm]),Named("gamma",gamma[il]),Named("Meta-Model",rtrn));
+        }//if(convergence)
+        if(!convergence){
+          StringVector Nsupp;
+          if(supp.size()>0) Nsupp = namesGrp[(supp2-1)];
+          rownames(teta) = namesGrp;
+          List iter = List::create(Named("maxIter",maxIter),Named("Step1",iiStep1),Named("Step2",ii));
+          List rtrn = List::create(Named("intercept",c),Named("teta",teta),Named("supp",supp2),
+                                         Named("Nsupp",Nsupp),Named("gamma.v",gamavs),Named("mu.v",muvs),
+                                         Named("iter",iter),Named("convergence",convergence));
+          Lme[il+lm+sme]=List::create(Named("mu",mu[lm]),Named("gamma",gamma[il]),Named("Meta-Model",rtrn));
+        }//if(!convergence)
+      }//if(calcStwo)
+    }//End of for(all gamma)
+    sme+=(ls-1);
+  }
   return Lme;
-}
+}//End pen_MetMod

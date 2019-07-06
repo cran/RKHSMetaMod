@@ -23,4 +23,4 @@ double mu_max(NumericVector Y, List matZ){
     muTEMP(v) = 2*(sqrt(nrm/n));
   }
   return(max(muTEMP));
-}
+}//End mu_max

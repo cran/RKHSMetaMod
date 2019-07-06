@@ -26,7 +26,7 @@ double tetafq (double ro, void *params){
   
   double y; y = (2*sqkvtetav_ro.norm())-mqn;
   return y;
-}// end tetafq
+}//End tetafq
 SEXP slvq(NumericVector d,NumericVector sqd, MatrixXd Q, VectorXd R, double mqn,
           double t0, double t1){
   int status;
@@ -55,7 +55,7 @@ SEXP slvq(NumericVector d,NumericVector sqd, MatrixXd Q, VectorXd R, double mqn,
   while (status == GSL_CONTINUE && iter < max_iter);
   gsl_root_fsolver_free (s);
   return List::create(Named("status",status),Named("x",r));
-}
+}//End slvq
 // [[Rcpp::export]]
 SEXP grplasso(NumericVector Y, List Kv, List k_v,double mu, int maxIter, double eps,
                   bool verbose){
@@ -375,4 +375,4 @@ SEXP grplasso(NumericVector Y, List Kv, List k_v,double mu, int maxIter, double 
                      ,Named("MaxIter",i),Named("convergence",convergence)
                      ,Named("RelDiffCrit",rDiffCrit),Named("RelDiffPar",nrmRel));
   return L;
-}
+}//End grplasso

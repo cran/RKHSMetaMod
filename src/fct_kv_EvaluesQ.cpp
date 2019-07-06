@@ -12,7 +12,7 @@ NumericVector k0linear(NumericVector u, double v) {
   k = 1+v*u;
   k0 = k - 4*(1+v/2)*(1+u/2)/5;
   return(k0);
-}
+}//End k0linear
 NumericVector k0quad(NumericVector u, double v) {
   int l; l = u.length();
   NumericVector k(l);
@@ -34,7 +34,7 @@ NumericVector k0quad(NumericVector u, double v) {
   c=3*ab/5;
   k0 = k - c;
   return(k0);
-}
+}//End k0quad
 NumericVector int_1v(NumericVector x){
   int l; l = x.length();
   NumericVector z(l);
@@ -50,12 +50,11 @@ NumericVector k0matern(NumericVector u, double v) {
   int l; l = u.length();
   NumericVector k(l);
   NumericVector k0(l);
-  double int_2;
   k = (1+2*abs(u-v))*exp(-2*abs(u-v));
-  int_2 =  (1+5*exp(-2))/2;
+  const double int_2 = 0.8383382;
   k0 = k - int_1v(u)*int_1d(v)/int_2;
   return(k0);
-}
+}//End k0matern
 NumericVector k0brownian(NumericVector u, double v) {
   int l; l = u.length();
   NumericVector k(l);
@@ -63,30 +62,27 @@ NumericVector k0brownian(NumericVector u, double v) {
   double vb;
   k = 1+pmin(u,rep(v,u.length()));
   vb=1+v*(1-v/2);
-  //int_2=4/3
   k0 = k-3*(1+u*(1-u/2))*vb/4;
   return(k0);
-}
+}//End k0brownian
 NumericVector int_1gv(NumericVector x){
-  static const double pi = 3.14159265;
   int n;
   n = x.size();
   NumericVector p1v(n);
   NumericVector p2v(n);
   NumericVector zgv(n);
-  p1v = pnorm((1-x)*sqrt(2));
-  p2v =  pnorm(-x*sqrt(2));
-  zgv = sqrt(pi)*(p1v-p2v);
+  p1v = pnorm((1-x)*1.414214);
+  p2v =  pnorm(-x*1.414214);
+  zgv = 1.772454*(p1v-p2v);
   return (zgv);
 }
 double int_1gd(double x){
-  static const double pi = 3.14159265;
   double p1d;
   double p2d;
   double zgd;
-  p1d = R::pnorm((1-x)*sqrt(2),0,1,TRUE,FALSE);
-  p2d =  R::pnorm(-x*sqrt(2),0,1,TRUE,FALSE);
-  zgd = sqrt(pi)*(p1d-p2d);
+  p1d = R::pnorm((1-x)*1.414214,0,1,TRUE,FALSE);
+  p2d = R::pnorm(-x*1.414214,0,1,TRUE,FALSE);
+  zgd = 1.772454*(p1d-p2d);
   return (zgd);
 }
 NumericVector k0gaussian(NumericVector u, double v) {
@@ -100,7 +96,7 @@ NumericVector k0gaussian(NumericVector u, double v) {
   const double int_2g = 0.8615277;
   k0 = k - int_1gv(u)*int_1gd(v)/int_2g;
   return(k0);
-}
+}//End k0gaussian
 NumericVector k0(NumericVector u, double v, String kernel) {
   int l; l = u.length();// I add length
   Rcpp::NumericVector k(l);
@@ -110,7 +106,7 @@ NumericVector k0(NumericVector u, double v, String kernel) {
   if (kernel=="linear") k = k0linear(u,v);
   if (kernel=="quad") k = k0quad(u,v);
   return(k);
-}
+}//End k0
 StringVector concatenate(StringVector a){
   StringVector c;
   std::ostringstream x;
@@ -118,7 +114,7 @@ StringVector concatenate(StringVector a){
   x << a[i];
   c.push_back(x.str());
   return c;
-}
+}//End concatenate
 StringVector namesGrp(int d, int Dmax, List index){
   StringVector a;
   for(int i=1;i<d+1;i++){
@@ -154,7 +150,7 @@ StringVector namesGrp(int d, int Dmax, List index){
     }
   }
   return(a);
-}
+}//End namesGrp
 // [[Rcpp::export]]
 SEXP calc_Kv(NumericMatrix X, String kernel, int Dmax, bool correction=true, 
              bool verbose=true, double tol=1e-8){
@@ -174,7 +170,7 @@ SEXP calc_Kv(NumericMatrix X, String kernel, int Dmax, bool correction=true,
     NumericVector k(nn);
     for (int jj=0; jj<n; jj++) {
       NumericVector v0k(n);
-      v0k = k0(X(_,hh),X(jj,hh),kernel=kernel);
+      v0k = k0(X(_,hh),X(jj,hh),kernel);
       std::copy(v0k.begin(), v0k.end() ,k.begin()+(n*hk));
       hk+=1;
     }
@@ -317,4 +313,4 @@ SEXP calc_Kv(NumericMatrix X, String kernel, int Dmax, bool correction=true,
   }//for(int ij=0;ij<lz;ij++)
   L = List::create(Named("kv",matZ),Named("names.Grp",namGrp));
   return L;
-}
+}//End calc_Kv
